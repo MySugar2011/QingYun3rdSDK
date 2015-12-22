@@ -65,7 +65,7 @@ public class OSSErrorResponseHandler implements ResponseHandler {
             			COMMON_RESOURCE_MANAGER.getString("ServerReturnsUnknownError"));            	
             }
         }
-        // 这个地方不应该再使用xml，而改用json
+        // 这个地方不应该再使用xml，而改用json xxx
         JAXBResponseParser parser = new JAXBResponseParser(OSSErrorResult.class);
         try {
             OSSErrorResult errorResult = (OSSErrorResult)parser.parse(response);
