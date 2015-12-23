@@ -21,18 +21,21 @@ package com.emacle.qingyunsdk.model;
 
 import java.util.Date;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * 包含通过Multipart上传模式上传的Part的摘要信息。
  *
  */
 public class PartSummary {
-
+	@JsonProperty("part_number")
     private int partNumber;
-
+	@JsonProperty("created")
     private Date lastModified;
-
+	@JsonIgnore
     private String eTag;
-
+    @JsonProperty("size")
     private long size;
     
     /**

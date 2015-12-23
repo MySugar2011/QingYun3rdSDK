@@ -22,6 +22,9 @@ package com.emacle.qingyunsdk.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import com.emacle.qingyunsdk.model.request.ListPartsRequest;
 
 /**
@@ -29,23 +32,23 @@ import com.emacle.qingyunsdk.model.request.ListPartsRequest;
  *
  */
 public class PartListing {
-
+	@JsonIgnore
     private String bucketName;
-
+	@JsonIgnore
     private String key;
-
+	@JsonIgnore
     private String uploadId;
-
+	@JsonProperty("count")
     private Integer maxParts;
-
+	@JsonIgnore
     private Integer partNumberMarker;
-
+	@JsonIgnore
     private String storageClass;
-
+	@JsonIgnore
     private boolean isTruncated;
-
+	@JsonIgnore
     private Integer nextPartNumberMarker;
-
+	@JsonProperty("object_parts")
     private List<PartSummary> parts = new ArrayList<PartSummary>();
 
     /**

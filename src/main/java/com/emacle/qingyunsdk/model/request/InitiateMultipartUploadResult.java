@@ -19,13 +19,15 @@
 
 package com.emacle.qingyunsdk.model.request;
 
+import org.codehaus.jackson.annotate.JsonProperty;
 
 public class InitiateMultipartUploadResult extends WebServiceRequest {
 
+	@JsonProperty("bucket")
     private String bucketName;
-
+	@JsonProperty("key")
     private String key;
-
+	@JsonProperty("upload_id")
     private String uploadId;
 
     public String getBucketName() {

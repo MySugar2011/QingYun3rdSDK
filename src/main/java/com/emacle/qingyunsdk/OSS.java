@@ -5,14 +5,25 @@ import java.io.File;
 import com.emacle.qingyunsdk.exception.ClientException;
 import com.emacle.qingyunsdk.exception.OSSException;
 import com.emacle.qingyunsdk.model.Bucket;
+import com.emacle.qingyunsdk.model.CompleteMultipartUploadResult;
 import com.emacle.qingyunsdk.model.DeleteObjectsResult;
 import com.emacle.qingyunsdk.model.HeadObjectRequest;
+import com.emacle.qingyunsdk.model.InitiateMultipartUploadRequest;
+import com.emacle.qingyunsdk.model.ListMultipartUploadsRequest;
+import com.emacle.qingyunsdk.model.MultipartUploadListing;
 import com.emacle.qingyunsdk.model.OSSObject;
+import com.emacle.qingyunsdk.model.PartListing;
 import com.emacle.qingyunsdk.model.PutObjectResult;
+import com.emacle.qingyunsdk.model.UploadPartResult;
+import com.emacle.qingyunsdk.model.request.AbortMultipartUploadRequest;
+import com.emacle.qingyunsdk.model.request.CompleteMultipartUploadRequest;
 import com.emacle.qingyunsdk.model.request.CreateBucketRequest;
 import com.emacle.qingyunsdk.model.request.DeleteObjectsRequest;
 import com.emacle.qingyunsdk.model.request.GetObjectRequest;
 import com.emacle.qingyunsdk.model.request.GetServiceRequest;
+import com.emacle.qingyunsdk.model.request.InitiateMultipartUploadResult;
+import com.emacle.qingyunsdk.model.request.ListPartsRequest;
+import com.emacle.qingyunsdk.model.request.UploadPartRequest;
 
 /**
  * 青云object存储服务SDK
@@ -83,7 +94,7 @@ public interface OSS {
             throws OSSException, ClientException;
 
     /**
-     * 批量删除指定Bucket下的{@link OSSObject}。 
+     * (暂不支持)批量删除指定Bucket下的{@link OSSObject}。 
      * @param deleteObjectsRequest 
      * 			请求参数{@link DeleteObjectsRequest}实例。
      * @return 批量删除结果。
@@ -112,6 +123,92 @@ public interface OSS {
      */
     public boolean doesObjectExist(HeadObjectRequest headObjectRequest)
     		throws OSSException, ClientException;
+    
+    /**
+     * 初始化一个Multipart上传事件。
+     * <p>
+     * 使用Multipart模式上传数据前，必须先调用该接口来通过OSS初始化一个Multipart上传事件。
+     * 该接口会返回一个OSS服务器创建的全局唯一的Upload ID，用于标识本次Multipart上传事件。
+     * 用户可以根据这个ID来发起相关的操作，如中止、查询Multipart上传等。
+     * </p>
+     * 
+     * <p>
+     * 此方法对应的操作为非幂等操作，SDK不会对其进行重试（即使设置最大重试次数大于0也不会重试）
+     * </p>
+     * @param request
+     *          {@link InitiateMultipartUploadRequest}对象。
+     * @return  InitiateMultipartUploadResult    
+     * @throws ClientException
+     */
+    public InitiateMultipartUploadResult initiateMultipartUpload(InitiateMultipartUploadRequest request) 
+    		throws OSSException, ClientException;
+    
+    /**
+     * 列出所有执行中的 Multipart上传事件。
+     * <p>
+     * 即已经被初始化的 Multipart Upload 但是未被完成或被终止的 Multipart上传事件。 
+     * OSS返回的罗列结果中最多会包含1000个Multipart上传事件。
+     * </p>
+     * @param request
+     *          {@link ListMultipartUploadsRequest}对象。
+     * @return  MultipartUploadListing
+     *          Multipart上传事件的列表{@link MultipartUploadListing}。
+     * @throws ClientException
+     */
+    public MultipartUploadListing listMultipartUploads(ListMultipartUploadsRequest request) 
+    		throws OSSException, ClientException;
+
+    /**
+     * 列出multipart中上传的所有part信息
+     * @param request
+     *          {@link ListPartsRequest}对象。
+     * @return  PartListing    
+     * @throws ClientException
+     */
+    public PartListing listParts(ListPartsRequest request) 
+    		throws OSSException, ClientException;
+
+    /**
+     * 上传一个分块（Part）到指定的的Multipart上传事件中。
+     * @param request
+     *          {@link UploadPartRequest}对象。
+     * @return  UploadPartResult 上传Part的返回结果{@link UploadPartResult}。
+     * @throws ClientException
+     */
+    public UploadPartResult uploadPart(UploadPartRequest request)
+            throws OSSException, ClientException;
+    
+    /**
+     * 完成一个Multipart上传事件。
+     * <p>
+     * 在将所有数据Part 都上传完成后，可以调用 Complete Multipart Upload API
+     * 来完成整个文件的 Multipart Upload。在执行该操作时，用户必须提供所有有效
+     * 的数据Part的列表（包括part号码和ETAG）； OSS收到用户提交的Part列表后，
+     * 会逐一验证每个数据 Part 的有效性。当所有的数据 Part 验证通过后，OSS 将把
+     * 这些数据part组合成一个完整的 Object。 
+     * </p>
+     * 
+     * <p>
+     * 此方法对应的操作为非幂等操作，SDK不会对其进行重试（即使设置最大重试次数大于0也不会重试）
+     * </p>
+     * 
+     * @param request
+     *          {@link CompleteMultipartUploadRequest}对象。
+     * @return  CompleteMultipartUploadResult    
+     * @throws ClientException
+     */
+    public CompleteMultipartUploadResult completeMultipartUpload(CompleteMultipartUploadRequest request) 
+    		throws OSSException, ClientException;
+    
+    /**
+     * 终止一个Multipart上传事件。
+     * @param request
+     *          {@link AbortMultipartUploadRequest}对象。
+     * @throws ClientException
+     */
+    public void abortMultipartUpload(AbortMultipartUploadRequest request)
+            throws OSSException, ClientException;
+
     
     public void getService(GetServiceRequest gsr)
     		throws OSSException, ClientException;

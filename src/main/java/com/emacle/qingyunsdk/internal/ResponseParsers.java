@@ -31,6 +31,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.util.JSONPObject;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -724,22 +726,24 @@ public final class ResponseParsers {
      */
     public static InitiateMultipartUploadResult parseInitiateMultipartUpload(InputStream responseBody) 
     		throws ResponseParseException {
-    	
-        try {
-        	Element root = getXmlRootElement(responseBody);
 
-        	InitiateMultipartUploadResult result = new InitiateMultipartUploadResult();
-        	if (root.getChild("Bucket") != null) {
-        		result.setBucketName(root.getChildText("Bucket"));        		
-        	}
-        	
-        	if (root.getChild("Key") != null) {
-        		result.setKey(root.getChildText("Key"));        		
-        	}
-        	
-        	if (root.getChild("UploadId") != null) {
-        		result.setUploadId(root.getChildText("UploadId"));        		
-        	}
+    	try {
+    		ObjectMapper om = new ObjectMapper();
+    		InitiateMultipartUploadResult result = om.readValue(responseBody, InitiateMultipartUploadResult.class);
+//        	Element root = getXmlRootElement(responseBody);
+//
+//        	InitiateMultipartUploadResult result = new InitiateMultipartUploadResult();
+//        	if (root.getChild("Bucket") != null) {
+//        		result.setBucketName(root.getChildText("Bucket"));        		
+//        	}
+//        	
+//        	if (root.getChild("Key") != null) {
+//        		result.setKey(root.getChildText("Key"));        		
+//        	}
+//        	
+//        	if (root.getChild("UploadId") != null) {
+//        		result.setUploadId(root.getChildText("UploadId"));        		
+//        	}
 
             return result;
         } catch (Exception e) {
@@ -839,44 +843,55 @@ public final class ResponseParsers {
     @SuppressWarnings("unchecked")
     public static PartListing parseListParts(InputStream responseBody) 
     		throws ResponseParseException {
-    	
+    	// 此地待修改
+//    	HTTP/1.1 200 OK
+//    	Server: nginx/1.6.3
+//    	Date: Wed, 23 Dec 2015 15:57:23 GMT
+//    	Content-Type: application/json
+//    	Content-Length: 102
+//    	Connection: keep-alive
+//    	Request-ID: dae374a4a98d11e5a77d5254199f7095
+//
+//    	{"count": 1, "object_parts": [{"part_number": 1, "size": 278, "created": "2015-12-23T15:57:23.000Z"}]}
         try {
-        	Element root = getXmlRootElement(responseBody);
-
-        	PartListing partListing = new PartListing();
-            partListing.setBucketName(root.getChildText("Bucket"));
-            partListing.setKey(root.getChildText("Key"));
-            partListing.setUploadId(root.getChildText("UploadId"));
-            partListing.setStorageClass(root.getChildText("StorageClass"));
-            partListing.setMaxParts(Integer.valueOf(root.getChildText("MaxParts")));
-            partListing.setTruncated(Boolean.valueOf(root.getChildText("IsTruncated")));
-            
-            if (root.getChild("PartNumberMarker") != null) {
-            	String partNumberMarker = root.getChildText("PartNumberMarker");
-            	if (!isNullOrEmpty(partNumberMarker)) {            		
-            		partListing.setPartNumberMarker(Integer.valueOf(partNumberMarker));
-            	}
-            }
-            
-            if (root.getChild("NextPartNumberMarker") != null) {
-            	String nextPartNumberMarker = root.getChildText("NextPartNumberMarker");
-            	if (!isNullOrEmpty(nextPartNumberMarker)) {            		
-            		partListing.setNextPartNumberMarker(Integer.valueOf(nextPartNumberMarker));
-            	}
-            }
-
-            List<Element> partElems = root.getChildren("Part");
-            for (Element elem : partElems) {
-                PartSummary ps = new PartSummary();
-                
-                ps.setPartNumber(Integer.valueOf(elem.getChildText("PartNumber")));
-                ps.setLastModified(DateUtil.parseIso8601Date(elem.getChildText("LastModified")));
-                ps.setETag(trimQuotes(elem.getChildText("ETag")));
-                ps.setSize(Integer.valueOf(elem.getChildText("Size")));
-                
-                partListing.addPart(ps);
-            }            
-
+        	
+//        	Element root = getXmlRootElement(responseBody);
+//
+//        	PartListing partListing = new PartListing();
+//            partListing.setBucketName(root.getChildText("Bucket"));
+//            partListing.setKey(root.getChildText("Key"));
+//            partListing.setUploadId(root.getChildText("UploadId"));
+//            partListing.setStorageClass(root.getChildText("StorageClass"));
+//            partListing.setMaxParts(Integer.valueOf(root.getChildText("MaxParts")));
+//            partListing.setTruncated(Boolean.valueOf(root.getChildText("IsTruncated")));
+//            
+//            if (root.getChild("PartNumberMarker") != null) {
+//            	String partNumberMarker = root.getChildText("PartNumberMarker");
+//            	if (!isNullOrEmpty(partNumberMarker)) {            		
+//            		partListing.setPartNumberMarker(Integer.valueOf(partNumberMarker));
+//            	}
+//            }
+//            
+//            if (root.getChild("NextPartNumberMarker") != null) {
+//            	String nextPartNumberMarker = root.getChildText("NextPartNumberMarker");
+//            	if (!isNullOrEmpty(nextPartNumberMarker)) {            		
+//            		partListing.setNextPartNumberMarker(Integer.valueOf(nextPartNumberMarker));
+//            	}
+//            }
+//
+//            List<Element> partElems = root.getChildren("Part");
+//            for (Element elem : partElems) {
+//                PartSummary ps = new PartSummary();
+//                
+//                ps.setPartNumber(Integer.valueOf(elem.getChildText("PartNumber")));
+//                ps.setLastModified(DateUtil.parseIso8601Date(elem.getChildText("LastModified")));
+//                ps.setETag(trimQuotes(elem.getChildText("ETag")));
+//                ps.setSize(Integer.valueOf(elem.getChildText("Size")));
+//                
+//                partListing.addPart(ps);
+//            }            
+        	ObjectMapper om = new ObjectMapper();
+        	PartListing partListing = om.readValue(responseBody, PartListing.class);
             return partListing;
         } catch (Exception e) {
         	throw new ResponseParseException(e.getMessage(), e);

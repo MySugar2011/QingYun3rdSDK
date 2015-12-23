@@ -38,8 +38,8 @@ public final class RequestParameters {
     public static final String MAX_KEYS = "max-keys";    
     public static final String ENCODING_TYPE = "encoding-type";
     
-    public static final String UPLOAD_ID = "uploadId";
-    public static final String PART_NUMBER = "partNumber";
+    public static final String UPLOAD_ID = "upload_id";
+    public static final String PART_NUMBER = "part_number";
     public static final String MAX_UPLOADS = "max-uploads";
     public static final String UPLOAD_ID_MARKER = "upload-id-marker";
     public static final String KEY_MARKER = "key-marker";

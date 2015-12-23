@@ -1,14 +1,25 @@
 package com.emacle.qingyunsdk;
 
 import com.emacle.qingyunsdk.model.Bucket;
+import com.emacle.qingyunsdk.model.CompleteMultipartUploadResult;
 import com.emacle.qingyunsdk.model.DeleteObjectsResult;
 import com.emacle.qingyunsdk.model.HeadObjectRequest;
+import com.emacle.qingyunsdk.model.InitiateMultipartUploadRequest;
+import com.emacle.qingyunsdk.model.ListMultipartUploadsRequest;
+import com.emacle.qingyunsdk.model.MultipartUploadListing;
 import com.emacle.qingyunsdk.model.OSSObject;
+import com.emacle.qingyunsdk.model.PartListing;
 import com.emacle.qingyunsdk.model.PutObjectResult;
+import com.emacle.qingyunsdk.model.UploadPartResult;
+import com.emacle.qingyunsdk.model.request.AbortMultipartUploadRequest;
+import com.emacle.qingyunsdk.model.request.CompleteMultipartUploadRequest;
 import com.emacle.qingyunsdk.model.request.CreateBucketRequest;
 import com.emacle.qingyunsdk.model.request.DeleteObjectsRequest;
 import com.emacle.qingyunsdk.model.request.GetObjectRequest;
 import com.emacle.qingyunsdk.model.request.GetServiceRequest;
+import com.emacle.qingyunsdk.model.request.InitiateMultipartUploadResult;
+import com.emacle.qingyunsdk.model.request.ListPartsRequest;
+import com.emacle.qingyunsdk.model.request.UploadPartRequest;
 
 import static com.emacle.qingyunsdk.internal.OSSConstants.DEFAULT_OSS_ENDPOINT;
 
@@ -26,6 +37,7 @@ import com.emacle.qingyunsdk.exception.ClientException;
 import com.emacle.qingyunsdk.exception.OSSErrorCode;
 import com.emacle.qingyunsdk.exception.OSSException;
 import com.emacle.qingyunsdk.internal.operation.OSSBucketOperation;
+import com.emacle.qingyunsdk.internal.operation.OSSMultipartOperation;
 import com.emacle.qingyunsdk.internal.operation.OSSObjectOperation;
 import com.emacle.qingyunsdk.internal.operation.OSSServiceOperation;
 
@@ -47,7 +59,7 @@ public class QOSSClient implements OSS{
 	private OSSBucketOperation bucketOperation;
 	private OSSServiceOperation serviceOperation;
 	private OSSObjectOperation objectOperation;
-//	private OSSMultipartOperation multipartOperation;
+	private OSSMultipartOperation multipartOperation;
 //	private CORSOperation corsOperation;
 	
 	/**
@@ -173,7 +185,7 @@ public class QOSSClient implements OSS{
 		this.bucketOperation.setEndpoint(uri);
 		this.serviceOperation.setEndpoint(uri);
 		this.objectOperation.setEndpoint(uri);
-//		this.multipartOperation.setEndpoint(uri);
+		this.multipartOperation.setEndpoint(uri);
 //		this.corsOperation.setEndpoint(uri);
 	}
 	
@@ -194,7 +206,7 @@ public class QOSSClient implements OSS{
     	this.bucketOperation = new OSSBucketOperation(this.serviceClient, this.credsProvider);
     	this.serviceOperation = new OSSServiceOperation(this.serviceClient, this.credsProvider);
     	this.objectOperation = new OSSObjectOperation(this.serviceClient, this.credsProvider);
-//    	this.multipartOperation = new OSSMultipartOperation(this.serviceClient, this.credsProvider);
+    	this.multipartOperation = new OSSMultipartOperation(this.serviceClient, this.credsProvider);
 //    	this.corsOperation = new CORSOperation(this.serviceClient, this.credsProvider);
     }
 	
@@ -255,22 +267,24 @@ public class QOSSClient implements OSS{
 		objectOperation.deleteObject(bucketName, key);
 	}
 	
+	@Deprecated
 	@Override
 	public DeleteObjectsResult deleteObjects(DeleteObjectsRequest deleteObjectsRequest)
 			throws OSSException, ClientException {
-		// TODO Auto-generated method stub
-		return null;
+		return objectOperation.deleteObjects(deleteObjectsRequest);
 	}
+	
 	@Override
 	public boolean doesObjectExist(String bucketName, String key) throws OSSException, ClientException {
 		return doesObjectExist(new HeadObjectRequest(bucketName, key));
 	}
+	
 	@Override
 	public boolean doesObjectExist(HeadObjectRequest headObjectRequest) throws OSSException, ClientException {
 		try {
 			headObject(headObjectRequest);
 			return true;
-		} catch (OSSException e) {// 这儿待改动的
+		} catch (OSSException e) {
 			if (e.getErrorCode() == OSSErrorCode.NO_SUCH_BUCKET 
 					|| e.getErrorCode() == OSSErrorCode.NO_SUCH_KEY) {
 				return false;
@@ -282,6 +296,33 @@ public class QOSSClient implements OSS{
 	private void headObject(HeadObjectRequest headObjectRequest)
 			throws OSSException, ClientException {
 		objectOperation.headObject(headObjectRequest);
+	}
+	@Override
+	public InitiateMultipartUploadResult initiateMultipartUpload(InitiateMultipartUploadRequest request)
+			throws OSSException, ClientException {
+		return multipartOperation.initiateMultipartUpload(request);
+	}
+	@Override
+	public MultipartUploadListing listMultipartUploads(ListMultipartUploadsRequest request)
+			throws OSSException, ClientException {
+		return multipartOperation.listMultipartUploads(request);
+	}
+	@Override
+	public PartListing listParts(ListPartsRequest request) throws OSSException, ClientException {
+		return multipartOperation.listParts(request);
+	}
+	@Override
+	public UploadPartResult uploadPart(UploadPartRequest request) throws OSSException, ClientException {
+		return multipartOperation.uploadPart(request);
+	}
+	@Override
+	public CompleteMultipartUploadResult completeMultipartUpload(CompleteMultipartUploadRequest request)
+			throws OSSException, ClientException {
+		return multipartOperation.completeMultipartUpload(request);
+	}
+	@Override
+	public void abortMultipartUpload(AbortMultipartUploadRequest request) throws OSSException, ClientException {
+		multipartOperation.abortMultipartUpload(request);
 	}
 	
 }

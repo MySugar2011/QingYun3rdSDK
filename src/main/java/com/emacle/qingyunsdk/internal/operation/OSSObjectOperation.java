@@ -27,9 +27,11 @@ import com.emacle.qingyunsdk.exception.OSSException;
 import com.emacle.qingyunsdk.internal.OSSHeaders;
 import com.emacle.qingyunsdk.internal.OSSOperation;
 import com.emacle.qingyunsdk.internal.OSSRequestMessageBuilder;
+import com.emacle.qingyunsdk.model.DeleteObjectsResult;
 import com.emacle.qingyunsdk.model.HeadObjectRequest;
 import com.emacle.qingyunsdk.model.OSSObject;
 import com.emacle.qingyunsdk.model.PutObjectResult;
+import com.emacle.qingyunsdk.model.request.DeleteObjectsRequest;
 import com.emacle.qingyunsdk.model.request.GetObjectRequest;
 
 public class OSSObjectOperation extends OSSOperation{
@@ -194,5 +196,11 @@ public class OSSObjectOperation extends OSSOperation{
 		    	.build();
     	
     	doOperation(request, emptyResponseParser, bucketName, key);
+	}
+
+
+	public DeleteObjectsResult deleteObjects(DeleteObjectsRequest deleteObjectsRequest) {
+		
+		return null;
 	}
 }
