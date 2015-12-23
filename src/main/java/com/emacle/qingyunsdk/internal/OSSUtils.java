@@ -29,8 +29,10 @@ import static com.emacle.qingyunsdk.internal.OSSConstants.RESOURCE_NAME_OSS;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -372,5 +374,18 @@ public class OSSUtils {
     
     public static String composeRequestAuthorization(String accessKeyId, String signature) {
     	return OSS_AUTHORIZATION_PREFIX + accessKeyId + OSS_AUTHORIZATION_SEPERATOR + signature;
+    }
+    
+    public static URL genUrl(URI endpoint,String buketName,String objectName){
+    	try {
+        	StringBuilder conbinedEndpoint = new StringBuilder();
+        	conbinedEndpoint.append(String.format("%s://", endpoint.getScheme()));
+        	conbinedEndpoint.append(buketName+"."+endpoint.getHost());
+        	conbinedEndpoint.append(endpoint.getPort() != -1 ? String.format(":%s", endpoint.getPort()) : "");
+        	conbinedEndpoint.append("/"+objectName);
+            return new URL(conbinedEndpoint.toString());
+        }  catch (MalformedURLException e) {
+        	 throw new IllegalArgumentException(e.getMessage(), e); 
+		}
     }
 }

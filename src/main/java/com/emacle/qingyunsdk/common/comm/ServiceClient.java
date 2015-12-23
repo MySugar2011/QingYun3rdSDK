@@ -179,6 +179,14 @@ public abstract class ServiceClient {
             return request;
         }
         
+        if (requestMessage.isUseUrl()) {
+        	request.setUrl(requestMessage.getAbsoluteUrl().toString());
+        	request.setContent(requestMessage.getContent());
+            request.setContentLength(requestMessage.getContentLength());
+            request.setHeaders(requestMessage.getHeaders());
+            return request;
+		}
+        
         request.setHeaders(requestMessage.getHeaders());
         // The header must be converted after the request is signed,
         // otherwise the signature will be incorrect.

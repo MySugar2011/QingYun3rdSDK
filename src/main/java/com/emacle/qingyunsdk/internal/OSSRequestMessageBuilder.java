@@ -26,6 +26,7 @@ import static com.emacle.qingyunsdk.internal.OSSUtils.determineResourcePath;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -54,6 +55,8 @@ public class OSSRequestMessageBuilder {
     private long inputSize = 0; 
     private ServiceClient innerClient;
     private boolean useChunkEncoding = false;
+    private boolean useUrl = false;
+    private URL absoluteUrl;
     
     public OSSRequestMessageBuilder(ServiceClient innerClient) {
     	this.innerClient = innerClient;
@@ -158,6 +161,24 @@ public class OSSRequestMessageBuilder {
 		return this;
 	}
 
+	public boolean isUseUrl() {
+		return useUrl;
+	}
+
+	public URL getAbsoluteUrl() {
+		return absoluteUrl;
+	}
+
+	public OSSRequestMessageBuilder setUseUrl(boolean useUrl) {
+		this.useUrl = useUrl;
+		return this;
+	}
+
+	public OSSRequestMessageBuilder setAbsoluteUrl(URL absoluteUrl) {
+		this.absoluteUrl = absoluteUrl;
+		return this;
+	}
+
 	public RequestMessage build() {       
 		Map<String, String> sentHeaders = new HashMap<String, String>(headers);
         sentHeaders.put(OSSHeaders.DATE, DateUtil.formatRfc822Date(new Date()));        
@@ -165,7 +186,12 @@ public class OSSRequestMessageBuilder {
         
         RequestMessage request = new RequestMessage();
         ClientConfiguration clientCofig = innerClient.getClientConfiguration();
-        request.setEndpoint(determineFinalEndpoint(endpoint, bucket, clientCofig));
+        request.setUseUrl(useUrl);
+        if (useUrl) {
+        	request.setAbsoluteUrl(absoluteUrl);
+        }else{
+        	 request.setEndpoint(determineFinalEndpoint(endpoint, bucket, clientCofig));
+        }
         request.setResourcePath(determineResourcePath(bucket, key, clientCofig.isSLDEnabled()));
         request.setHeaders(sentHeaders);
         request.setParameters(sentParameters);

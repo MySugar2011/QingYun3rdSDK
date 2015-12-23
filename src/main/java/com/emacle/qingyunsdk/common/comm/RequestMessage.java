@@ -45,6 +45,8 @@ public class RequestMessage extends HttpMesssage {
     /* The absolute url to which the request should be sent */
     private URL absoluteUrl;
     
+    private boolean useUrl = false;
+    
     /* Indicate whether using url signature */
     private boolean useUrlSignature = false;
     
@@ -133,4 +135,13 @@ public class RequestMessage extends HttpMesssage {
 		this.useChunkEncoding = useChunkEncoding;
 	}
 
+	public boolean isUseUrl() {
+		return useUrl;
+	}
+
+	public void setUseUrl(boolean useUrl) {
+		this.useUrl = useUrl;
+	}
+
+	
 }

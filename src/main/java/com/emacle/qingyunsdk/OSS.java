@@ -1,9 +1,14 @@
 package com.emacle.qingyunsdk;
 
+import java.io.File;
+
 import com.emacle.qingyunsdk.exception.ClientException;
 import com.emacle.qingyunsdk.exception.OSSException;
 import com.emacle.qingyunsdk.model.Bucket;
+import com.emacle.qingyunsdk.model.OSSObject;
+import com.emacle.qingyunsdk.model.PutObjectResult;
 import com.emacle.qingyunsdk.model.request.CreateBucketRequest;
+import com.emacle.qingyunsdk.model.request.GetObjectRequest;
 import com.emacle.qingyunsdk.model.request.GetServiceRequest;
 
 /**
@@ -34,9 +39,40 @@ public interface OSS {
     public Bucket putBucket(CreateBucketRequest createBucketRequest) 
     		throws OSSException, ClientException;
     
+    /**
+     * 上传指定文件到OSS中指定的{@link Bucket}。
+     * @param bucketName
+     *          Bucket名称。
+     * @param file
+     *          指定上传文件。
+     */
+    public PutObjectResult putObject(String bucketName, File file) 
+    		throws OSSException, ClientException;
+    
+    /**
+     * 从OSS指定的{@link Bucket}中导出{@link OSSObject}。
+     * @param bucketName
+     *          Bucket名称。
+     * @param key
+     *          Object Key。
+     * @return 请求结果{@link OSSObject}实例。使用完之后需要手动关闭其中的ObjectContent释放请求连接。
+     */
+    public OSSObject getObject(String bucketName, String key) 
+    		throws OSSException, ClientException;
+    
+    /**
+     * 从OSS指定的{@link Bucket}中导出{@link OSSObject}。
+     * @param getObjectRequest
+     *          请求参数{@link GetObjectRequest}。
+     * @return 请求结果{@link OSSObject}实例。使用完之后需要手动关闭其中的ObjectContent释放请求连接。
+     */
+    public OSSObject getObject(GetObjectRequest getObjectRequest) 
+    		throws OSSException, ClientException;
+    
     public void getService(GetServiceRequest gsr)
     		throws OSSException, ClientException;
 
 	void getService() throws OSSException, ClientException;
+
     
 }

@@ -1,11 +1,17 @@
 package com.emacle.qingyunsdk;
 
 import com.emacle.qingyunsdk.model.Bucket;
+import com.emacle.qingyunsdk.model.OSSObject;
+import com.emacle.qingyunsdk.model.PutObjectResult;
 import com.emacle.qingyunsdk.model.request.CreateBucketRequest;
+import com.emacle.qingyunsdk.model.request.GetObjectRequest;
 import com.emacle.qingyunsdk.model.request.GetServiceRequest;
 
 import static com.emacle.qingyunsdk.internal.OSSConstants.DEFAULT_OSS_ENDPOINT;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -16,6 +22,7 @@ import com.emacle.qingyunsdk.common.comm.ServiceClient;
 import com.emacle.qingyunsdk.exception.ClientException;
 import com.emacle.qingyunsdk.exception.OSSException;
 import com.emacle.qingyunsdk.internal.operation.OSSBucketOperation;
+import com.emacle.qingyunsdk.internal.operation.OSSObjectOperation;
 import com.emacle.qingyunsdk.internal.operation.OSSServiceOperation;
 
 /**
@@ -35,7 +42,7 @@ public class QOSSClient implements OSS{
 	/* The miscellaneous OSS operations */
 	private OSSBucketOperation bucketOperation;
 	private OSSServiceOperation serviceOperation;
-//	private OSSObjectOperation objectOperation;
+	private OSSObjectOperation objectOperation;
 //	private OSSMultipartOperation multipartOperation;
 //	private CORSOperation corsOperation;
 	
@@ -161,7 +168,7 @@ public class QOSSClient implements OSS{
 		
 		this.bucketOperation.setEndpoint(uri);
 		this.serviceOperation.setEndpoint(uri);
-//		this.objectOperation.setEndpoint(uri);
+		this.objectOperation.setEndpoint(uri);
 //		this.multipartOperation.setEndpoint(uri);
 //		this.corsOperation.setEndpoint(uri);
 	}
@@ -182,7 +189,7 @@ public class QOSSClient implements OSS{
     private void initOperations() {
     	this.bucketOperation = new OSSBucketOperation(this.serviceClient, this.credsProvider);
     	this.serviceOperation = new OSSServiceOperation(this.serviceClient, this.credsProvider);
-//    	this.objectOperation = new OSSObjectOperation(this.serviceClient, this.credsProvider);
+    	this.objectOperation = new OSSObjectOperation(this.serviceClient, this.credsProvider);
 //    	this.multipartOperation = new OSSMultipartOperation(this.serviceClient, this.credsProvider);
 //    	this.corsOperation = new CORSOperation(this.serviceClient, this.credsProvider);
     }
@@ -210,6 +217,33 @@ public class QOSSClient implements OSS{
 	@Override
 	public void getService(GetServiceRequest gsr) throws OSSException, ClientException {
 		serviceOperation.getService(gsr);
+	}
+	@Override
+	public PutObjectResult putObject(String bucketName,  File file) throws OSSException, ClientException {
+		FileInputStream fis = null;
+		String objectName = file.getName();
+		try {
+			fis = new FileInputStream(file);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} 
+		long contentLength = file.length();
+		return objectOperation.putObject(endpoint,bucketName,objectName, fis, contentLength, null);
+	}
+	
+    /**
+     * Pull an object from oss.
+     */
+	@Override
+    public OSSObject getObject(String bucketName, String key)
+            throws OSSException, ClientException {
+		return this.getObject(new GetObjectRequest(bucketName, key));
+    }
+	
+	@Override
+	public OSSObject getObject(GetObjectRequest getObjectRequest) 
+			throws OSSException, ClientException {
+		return objectOperation.getObject(getObjectRequest);
 	}
 
 }
