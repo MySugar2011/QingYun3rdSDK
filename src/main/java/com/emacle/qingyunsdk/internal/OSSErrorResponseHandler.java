@@ -30,6 +30,7 @@ import com.emacle.qingyunsdk.exception.OSSException;
 import com.emacle.qingyunsdk.common.comm.ResponseHandler;
 import com.emacle.qingyunsdk.common.comm.ResponseMessage;
 import com.emacle.qingyunsdk.common.parser.JAXBResponseParser;
+import com.emacle.qingyunsdk.common.parser.JsonResponseParseer;
 import com.emacle.qingyunsdk.common.parser.ResponseParseException;
 import com.emacle.qingyunsdk.common.utils.ExceptionFactory;
 import com.emacle.qingyunsdk.internal.model.OSSErrorResult;
@@ -66,7 +67,8 @@ public class OSSErrorResponseHandler implements ResponseHandler {
             }
         }
         // 这个地方不应该再使用xml，而改用json xxx
-        JAXBResponseParser parser = new JAXBResponseParser(OSSErrorResult.class);
+        JsonResponseParseer parser = new JsonResponseParseer(OSSErrorResult.class);
+//        JAXBResponseParser parser = new JAXBResponseParser(OSSErrorResult.class);
         try {
             OSSErrorResult errorResult = (OSSErrorResult)parser.parse(response);
             throw ExceptionFactory.createOSSException(errorResult, response.getErrorResponseAsString());
