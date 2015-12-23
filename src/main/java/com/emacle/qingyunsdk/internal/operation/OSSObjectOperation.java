@@ -7,6 +7,8 @@ import static com.emacle.qingyunsdk.internal.OSSUtils.ensureObjectKeyValid;
 import static com.emacle.qingyunsdk.internal.OSSUtils.joinETags;
 import static com.emacle.qingyunsdk.internal.OSSUtils.populateResponseHeaderParameters;
 import static com.emacle.qingyunsdk.internal.ResponseParsers.putObjectReponseParser;
+import static com.emacle.qingyunsdk.internal.OSSUtils.addDateHeader;
+import static com.emacle.qingyunsdk.internal.OSSUtils.addStringListHeader;
 import com.emacle.qingyunsdk.internal.ResponseParsers.GetObjectResponseParser;
 
 
@@ -25,6 +27,7 @@ import com.emacle.qingyunsdk.exception.OSSException;
 import com.emacle.qingyunsdk.internal.OSSHeaders;
 import com.emacle.qingyunsdk.internal.OSSOperation;
 import com.emacle.qingyunsdk.internal.OSSRequestMessageBuilder;
+import com.emacle.qingyunsdk.model.HeadObjectRequest;
 import com.emacle.qingyunsdk.model.OSSObject;
 import com.emacle.qingyunsdk.model.PutObjectResult;
 import com.emacle.qingyunsdk.model.request.GetObjectRequest;
@@ -139,4 +142,57 @@ public class OSSObjectOperation extends OSSOperation{
     	RangeSpec rangeSpec = RangeSpec.parse(range);
         headers.put(OSSHeaders.RANGE, rangeSpec.toString());
     }
+
+
+	public void deleteObject(String bucketName, String key) {
+        assertParameterNotNull(bucketName, "bucketName");
+        ensureBucketNameValid(bucketName);
+        assertParameterNotNull(key, "key");
+        ensureObjectKeyValid(key);
+        
+        RequestMessage request = new OSSRequestMessageBuilder(getInnerClient())
+                .setEndpoint(getEndpoint())
+                .setMethod(HttpMethod.DELETE)
+                .setBucket(bucketName)
+                .setKey(key)
+                .build();
+        
+        doOperation(request, emptyResponseParser, bucketName, key);
+	}
+
+	/**
+     * Check if the object key exists under the specified bucket.
+     */
+	public void headObject(HeadObjectRequest headObjectRequest) {
+		assertParameterNotNull(headObjectRequest, "headObjectRequest");
+    	
+    	String bucketName = headObjectRequest.getBucketName();
+    	String key = headObjectRequest.getKey();
+    	
+    	assertParameterNotNull(bucketName, "bucketName");
+        ensureBucketNameValid(bucketName);
+        assertParameterNotNull(key, "key");
+        ensureObjectKeyValid(key);
+        
+        Map<String, String> headers = new HashMap<String, String>();
+        addDateHeader(headers, OSSHeaders.HEAD_OBJECT_IF_MODIFIED_SINCE,
+    			headObjectRequest.getModifiedSinceConstraint());
+    	addDateHeader(headers, OSSHeaders.HEAD_OBJECT_IF_UNMODIFIED_SINCE,
+    			headObjectRequest.getUnmodifiedSinceConstraint());
+    	
+    	addStringListHeader(headers, OSSHeaders.HEAD_OBJECT_IF_MATCH,
+    			headObjectRequest.getMatchingETagConstraints());
+    	addStringListHeader(headers, OSSHeaders.HEAD_OBJECT_IF_NONE_MATCH,
+    			headObjectRequest.getNonmatchingETagConstraints());
+    	
+    	RequestMessage request = new OSSRequestMessageBuilder(getInnerClient())
+		    	.setEndpoint(getEndpoint())
+		    	.setMethod(HttpMethod.HEAD)
+		    	.setBucket(bucketName)
+		    	.setKey(key)
+		    	.setHeaders(headers)
+		    	.build();
+    	
+    	doOperation(request, emptyResponseParser, bucketName, key);
+	}
 }

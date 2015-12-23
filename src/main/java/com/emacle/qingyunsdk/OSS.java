@@ -5,9 +5,12 @@ import java.io.File;
 import com.emacle.qingyunsdk.exception.ClientException;
 import com.emacle.qingyunsdk.exception.OSSException;
 import com.emacle.qingyunsdk.model.Bucket;
+import com.emacle.qingyunsdk.model.DeleteObjectsResult;
+import com.emacle.qingyunsdk.model.HeadObjectRequest;
 import com.emacle.qingyunsdk.model.OSSObject;
 import com.emacle.qingyunsdk.model.PutObjectResult;
 import com.emacle.qingyunsdk.model.request.CreateBucketRequest;
+import com.emacle.qingyunsdk.model.request.DeleteObjectsRequest;
 import com.emacle.qingyunsdk.model.request.GetObjectRequest;
 import com.emacle.qingyunsdk.model.request.GetServiceRequest;
 
@@ -67,6 +70,47 @@ public interface OSS {
      * @return 请求结果{@link OSSObject}实例。使用完之后需要手动关闭其中的ObjectContent释放请求连接。
      */
     public OSSObject getObject(GetObjectRequest getObjectRequest) 
+    		throws OSSException, ClientException;
+    
+    /**
+     * 删除指定的{@link OSSObject}。
+     * @param bucketName
+     *          Bucket名称。
+     * @param key
+     *          Object key。
+     */
+    public void deleteObject(String bucketName, String key)
+            throws OSSException, ClientException;
+
+    /**
+     * 批量删除指定Bucket下的{@link OSSObject}。 
+     * @param deleteObjectsRequest 
+     * 			请求参数{@link DeleteObjectsRequest}实例。
+     * @return 批量删除结果。
+     */
+    public DeleteObjectsResult deleteObjects(DeleteObjectsRequest deleteObjectsRequest)
+    		throws OSSException, ClientException;
+    
+    /**
+     * 判断指定{@link Bucket}下是否存在指定的{@link OSSObject}。
+     * @param bucketName 
+     * 			Bucket名称。
+     * @param key
+     * 			Object Key。 
+     * @return 
+     * 			如果存在返回True，不存在则返回False。
+     */
+    public boolean doesObjectExist(String bucketName, String key)
+    		throws OSSException, ClientException;
+    
+    /**
+     * 判断指定的{@link OSSObject}是否存在。
+     * @param headObjectRequest 
+     * 			请求参数{@link HeadObjectRequest}实例。
+     * @return 
+     * 			如果存在返回True，不存在则返回False。
+     */
+    public boolean doesObjectExist(HeadObjectRequest headObjectRequest)
     		throws OSSException, ClientException;
     
     public void getService(GetServiceRequest gsr)

@@ -1,5 +1,7 @@
 package com.emacle.qingyunsdk;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 
 import org.junit.BeforeClass;
@@ -32,11 +34,28 @@ public class QOSSClientTest {
 //		qsc.putObject(bucketName, file);
 //	}
 	
+//	@Test
+//	public void testGetObject(){
+//		String bucketName = "sugaross";
+//		String key = "te.txt";
+//		OSSObject ob= qsc.getObject(bucketName, key);
+//		
+//	}
+	
 	@Test
-	public void testGetObject(){
+	public void testDeleteObject(){
 		String bucketName = "sugaross";
 		String key = "te.txt";
-		OSSObject ob= qsc.getObject(bucketName, key);
+		qsc.deleteObject(bucketName, key);
+		
+	}
+	
+	@Test
+	public void testDoesObjectExist(){
+		String bucketName = "sugaross";
+		String key = "te.txt";
+		System.out.println(qsc.doesObjectExist(bucketName, key));
+		assertFalse(qsc.doesObjectExist(bucketName, key));
 		
 	}
 }

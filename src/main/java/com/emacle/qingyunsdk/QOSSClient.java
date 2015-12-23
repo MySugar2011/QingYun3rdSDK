@@ -1,9 +1,12 @@
 package com.emacle.qingyunsdk;
 
 import com.emacle.qingyunsdk.model.Bucket;
+import com.emacle.qingyunsdk.model.DeleteObjectsResult;
+import com.emacle.qingyunsdk.model.HeadObjectRequest;
 import com.emacle.qingyunsdk.model.OSSObject;
 import com.emacle.qingyunsdk.model.PutObjectResult;
 import com.emacle.qingyunsdk.model.request.CreateBucketRequest;
+import com.emacle.qingyunsdk.model.request.DeleteObjectsRequest;
 import com.emacle.qingyunsdk.model.request.GetObjectRequest;
 import com.emacle.qingyunsdk.model.request.GetServiceRequest;
 
@@ -20,6 +23,7 @@ import com.emacle.qingyunsdk.common.auth.DefaultCredentialProvider;
 import com.emacle.qingyunsdk.common.comm.DefaultServiceClient;
 import com.emacle.qingyunsdk.common.comm.ServiceClient;
 import com.emacle.qingyunsdk.exception.ClientException;
+import com.emacle.qingyunsdk.exception.OSSErrorCode;
 import com.emacle.qingyunsdk.exception.OSSException;
 import com.emacle.qingyunsdk.internal.operation.OSSBucketOperation;
 import com.emacle.qingyunsdk.internal.operation.OSSObjectOperation;
@@ -245,5 +249,39 @@ public class QOSSClient implements OSS{
 			throws OSSException, ClientException {
 		return objectOperation.getObject(getObjectRequest);
 	}
-
+	
+	@Override
+	public void deleteObject(String bucketName, String key) throws OSSException, ClientException {
+		objectOperation.deleteObject(bucketName, key);
+	}
+	
+	@Override
+	public DeleteObjectsResult deleteObjects(DeleteObjectsRequest deleteObjectsRequest)
+			throws OSSException, ClientException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public boolean doesObjectExist(String bucketName, String key) throws OSSException, ClientException {
+		return doesObjectExist(new HeadObjectRequest(bucketName, key));
+	}
+	@Override
+	public boolean doesObjectExist(HeadObjectRequest headObjectRequest) throws OSSException, ClientException {
+		try {
+			headObject(headObjectRequest);
+			return true;
+		} catch (OSSException e) {// 这儿待改动的
+			if (e.getErrorCode() == OSSErrorCode.NO_SUCH_BUCKET 
+					|| e.getErrorCode() == OSSErrorCode.NO_SUCH_KEY) {
+				return false;
+			}
+			throw e;
+		}
+	}
+	
+	private void headObject(HeadObjectRequest headObjectRequest)
+			throws OSSException, ClientException {
+		objectOperation.headObject(headObjectRequest);
+	}
+	
 }
