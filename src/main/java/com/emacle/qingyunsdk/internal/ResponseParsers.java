@@ -907,7 +907,7 @@ public final class ResponseParsers {
 
         try {
         	Element root = getXmlRootElement(responseBody);
-
+        	
         	CompleteMultipartUploadResult result = new CompleteMultipartUploadResult();
             result.setBucketName(root.getChildText("Bucket"));
             result.setETag(trimQuotes(root.getChildText("ETag")));

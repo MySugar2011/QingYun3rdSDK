@@ -19,14 +19,16 @@
 
 package com.emacle.qingyunsdk.model;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+
 /**
  * 包含Multipart上传的Part的返回结果信息。
  *
  */
 public class PartETag {
 
+	@JsonProperty("part_number")
     private int partNumber;
-
     private String eTag;
 
     /**

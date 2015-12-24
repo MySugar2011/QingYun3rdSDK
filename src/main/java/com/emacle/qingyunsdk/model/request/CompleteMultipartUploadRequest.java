@@ -22,6 +22,8 @@ package com.emacle.qingyunsdk.model.request;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import com.emacle.qingyunsdk.model.Bucket;
 import com.emacle.qingyunsdk.model.OSSObject;
 import com.emacle.qingyunsdk.model.PartETag;
@@ -41,8 +43,10 @@ public class CompleteMultipartUploadRequest extends WebServiceRequest {
     private String uploadId;
 
     /** The list of part numbers and ETags to use when completing the multipart upload */
+    @JsonProperty("object_parts")
     private List<PartETag> partETags = new ArrayList<PartETag>();
     
+    private String ETag="0";
 
     /**
      * 构造函数。
@@ -62,6 +66,13 @@ public class CompleteMultipartUploadRequest extends WebServiceRequest {
         this.partETags = partETags;
     }
 
+    public CompleteMultipartUploadRequest(String bucketName, String key, String uploadId, List<PartETag> partETags,String ETag) {
+        this.bucketName = bucketName;
+        this.key = key;
+        this.uploadId = uploadId;
+        this.partETags = partETags;
+        this.ETag = ETag;
+    }
     /**
      * 返回{@link Bucket}名称。
      * @return Bucket名称。
@@ -129,5 +140,13 @@ public class CompleteMultipartUploadRequest extends WebServiceRequest {
     public void setPartETags(List<PartETag> partETags) {
         this.partETags = partETags;
     }
+
+	public String getETag() {
+		return ETag;
+	}
+
+	public void setETag(String eTag) {
+		ETag = eTag;
+	}
     
 }

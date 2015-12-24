@@ -1,6 +1,7 @@
 package com.emacle.qingyunsdk;
 
 import java.io.File;
+import java.io.InputStream;
 
 import com.emacle.qingyunsdk.exception.ClientException;
 import com.emacle.qingyunsdk.exception.OSSException;
@@ -12,7 +13,9 @@ import com.emacle.qingyunsdk.model.InitiateMultipartUploadRequest;
 import com.emacle.qingyunsdk.model.ListMultipartUploadsRequest;
 import com.emacle.qingyunsdk.model.MultipartUploadListing;
 import com.emacle.qingyunsdk.model.OSSObject;
+import com.emacle.qingyunsdk.model.ObjectMetadata;
 import com.emacle.qingyunsdk.model.PartListing;
+import com.emacle.qingyunsdk.model.PutObjectRequest;
 import com.emacle.qingyunsdk.model.PutObjectResult;
 import com.emacle.qingyunsdk.model.UploadPartResult;
 import com.emacle.qingyunsdk.model.request.AbortMultipartUploadRequest;
@@ -61,6 +64,42 @@ public interface OSS {
      *          指定上传文件。
      */
     public PutObjectResult putObject(String bucketName, File file) 
+    		throws OSSException, ClientException;
+    /**
+     * 上传指定的{@link OSSObject}到OSS中指定的{@link Bucket}。
+     * @param bucketName
+     *          Bucket名称。
+     * @param key
+     *          object的key。
+     * @param input
+     *          输入流。
+     * @param metadata
+     *          object的元信息{@link ObjectMetadata}，若该元信息未包含Content-Length，
+     *          则采用chunked编码传输请求数据。
+     */
+    public PutObjectResult putObject(String bucketName, String key, InputStream input, ObjectMetadata metadata) 
+    		throws OSSException, ClientException;
+    
+    /**
+     * 上传指定文件到OSS中指定的{@link Bucket}。
+     * @param bucketName
+     *          Bucket名称。
+     * @param key
+     *          object的key。
+     * @param file
+     *          指定上传文件。
+     */
+    public PutObjectResult putObject(String bucketName, String key, File file) 
+    		throws OSSException, ClientException;
+    
+    /**
+     * 上传指定文件或输入流至指定的{@link Bucket}。
+     * @param putObjectRequest 请求参数{@link PutObjectRequest}。
+     * @return 请求结果{@link PutObjectResult}实例。
+     * @throws OSSException
+     * @throws ClientException
+     */
+    public PutObjectResult putObject(PutObjectRequest putObjectRequest)
     		throws OSSException, ClientException;
     
     /**

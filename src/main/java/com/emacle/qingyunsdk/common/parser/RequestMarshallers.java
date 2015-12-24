@@ -20,9 +20,14 @@
 package com.emacle.qingyunsdk.common.parser;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import static com.emacle.qingyunsdk.internal.OSSConstants.DEFAULT_CHARSET_NAME;
 
@@ -256,19 +261,39 @@ public final class RequestMarshallers {
 
 		@Override
 		public FixedLengthInputStream marshall(CompleteMultipartUploadRequest request) {
-			StringBuffer xmlBody = new StringBuffer();
+//			StringBuffer xmlBody = new StringBuffer();
 			List<PartETag> eTags =  request.getPartETags();
-	        xmlBody.append("<CompleteMultipartUpload>");
-	        for (int i = 0; i < eTags.size(); i++) {
-	            PartETag part = eTags.get(i);
-	            String eTag = EscapedChar.QUOT + part.getETag().replace("\"", "") + EscapedChar.QUOT;
-	            xmlBody.append("<Part>");
-	            xmlBody.append("<PartNumber>" + part.getPartNumber() + "</PartNumber>");
-	            xmlBody.append("<ETag>" + eTag + "</ETag>");
-	            xmlBody.append("</Part>");
-	        }
-	        xmlBody.append("</CompleteMultipartUpload>");
-			return stringMarshaller.marshall(xmlBody.toString());
+//	        xmlBody.append("<CompleteMultipartUpload>");
+//	        for (int i = 0; i < eTags.size(); i++) {
+//	            PartETag part = eTags.get(i);
+//	            String eTag = EscapedChar.QUOT + part.getETag().replace("\"", "") + EscapedChar.QUOT;
+//	            xmlBody.append("<Part>");
+//	            xmlBody.append("<PartNumber>" + part.getPartNumber() + "</PartNumber>");
+//	            xmlBody.append("<ETag>" + eTag + "</ETag>");
+//	            xmlBody.append("</Part>");
+//	        }
+//	        xmlBody.append("</CompleteMultipartUpload>");
+			StringBuilder sb = new StringBuilder("{\"object_parts\":[");
+			ObjectMapper om = new ObjectMapper();
+			try {
+				int i = 0;
+				for (PartETag pe:eTags) {
+					if (i!=0) {
+						sb.append(",");
+					}
+					sb.append(om.writeValueAsString(pe));
+					i++;
+				}
+				sb.append("]}");
+			} catch (JsonGenerationException e) {
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			String result = sb.toString();
+			return stringMarshaller.marshall(result);
 		}
 		
 	}

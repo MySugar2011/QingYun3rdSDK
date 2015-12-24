@@ -155,8 +155,15 @@ public class OSSMultipartOperation extends OSSOperation {
                 .setParameters(parameters)
                 .setInputStreamWithLength(completeMultipartUploadRequestMarshaller.marshall(completeMultipartUploadRequest))
                 .build();
+        //无具体返回信息所以做修改了
+//        return doOperation(request, completeMultipartUploadResponseParser, bucketName, key, true);
+        ResponseMessage response = doOperation(request, emptyResponseParser, bucketName, key);
         
-        return doOperation(request, completeMultipartUploadResponseParser, bucketName, key, true);
+        CompleteMultipartUploadResult result = new CompleteMultipartUploadResult();
+        result.setBucketName(bucketName);
+        result.setKey(key);
+        result.setETag(trimQuotes(response.getHeaders().get(OSSHeaders.ETAG)));
+        return result;
     }
 
     /**
@@ -486,7 +493,7 @@ public class OSSMultipartOperation extends OSSOperation {
 
     private static void populateCompleteMultipartUploadOptionalHeaders(
     		CompleteMultipartUploadRequest completeMultipartUploadRequest, Map<String, String> headers) {
-    	
+    	headers.put(OSSHeaders.ETAG,completeMultipartUploadRequest.getETag());
 //    	CannedAccessControlList cannedACL = completeMultipartUploadRequest.getObjectACL();
 //    	if (cannedACL != null) {
 //    		if (OSSUtils.isAllowedAcl(cannedACL)) {

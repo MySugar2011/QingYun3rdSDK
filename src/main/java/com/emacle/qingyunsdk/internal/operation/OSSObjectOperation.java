@@ -1,35 +1,67 @@
 package com.emacle.qingyunsdk.internal.operation;
 
-import static com.emacle.qingyunsdk.internal.OSSUtils.genUrl;
+import static com.emacle.qingyunsdk.common.parser.RequestMarshallers.deleteObjectsRequestMarshaller;
 import static com.emacle.qingyunsdk.common.utils.CodingUtils.assertParameterNotNull;
+import static com.emacle.qingyunsdk.common.utils.CodingUtils.assertTrue;
+import static com.emacle.qingyunsdk.common.utils.IOUtils.checkFile;
+import static com.emacle.qingyunsdk.common.utils.IOUtils.newRepeatableInputStream;
+import static com.emacle.qingyunsdk.common.utils.IOUtils.safeClose;
+import static com.emacle.qingyunsdk.common.utils.LogUtils.getLog;
+import static com.emacle.qingyunsdk.common.utils.LogUtils.logException;
+import static com.emacle.qingyunsdk.internal.OSSConstants.DEFAULT_BUFFER_SIZE;
+import static com.emacle.qingyunsdk.internal.OSSConstants.DEFAULT_CHARSET_NAME;
+import static com.emacle.qingyunsdk.internal.OSSUtils.OSS_RESOURCE_MANAGER;
+import static com.emacle.qingyunsdk.internal.OSSUtils.addDateHeader;
+import static com.emacle.qingyunsdk.internal.OSSUtils.genUrl;
+import static com.emacle.qingyunsdk.internal.OSSUtils.addHeader;
+import static com.emacle.qingyunsdk.internal.OSSUtils.addStringListHeader;
+import static com.emacle.qingyunsdk.internal.OSSUtils.determineInputStreamLength;
 import static com.emacle.qingyunsdk.internal.OSSUtils.ensureBucketNameValid;
 import static com.emacle.qingyunsdk.internal.OSSUtils.ensureObjectKeyValid;
 import static com.emacle.qingyunsdk.internal.OSSUtils.joinETags;
+import static com.emacle.qingyunsdk.internal.OSSUtils.populateRequestMetadata;
 import static com.emacle.qingyunsdk.internal.OSSUtils.populateResponseHeaderParameters;
+import static com.emacle.qingyunsdk.internal.OSSUtils.removeHeader;
+import static com.emacle.qingyunsdk.internal.OSSUtils.safeCloseResponse;
+import static com.emacle.qingyunsdk.internal.RequestParameters.ENCODING_TYPE;
+import static com.emacle.qingyunsdk.internal.RequestParameters.SUBRESOURCE_ACL;
+import static com.emacle.qingyunsdk.internal.RequestParameters.SUBRESOURCE_DELETE;
+import static com.emacle.qingyunsdk.internal.ResponseParsers.appendObjectResponseParser;
+import static com.emacle.qingyunsdk.internal.ResponseParsers.copyObjectResponseParser;
+import static com.emacle.qingyunsdk.internal.ResponseParsers.deleteObjectsResponseParser;
+import static com.emacle.qingyunsdk.internal.ResponseParsers.getObjectAclResponseParser;
+import static com.emacle.qingyunsdk.internal.ResponseParsers.getObjectMetadataResponseParser;
 import static com.emacle.qingyunsdk.internal.ResponseParsers.putObjectReponseParser;
-import static com.emacle.qingyunsdk.internal.OSSUtils.addDateHeader;
-import static com.emacle.qingyunsdk.internal.OSSUtils.addStringListHeader;
-import com.emacle.qingyunsdk.internal.ResponseParsers.GetObjectResponseParser;
 
-
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import com.emacle.qingyunsdk.common.auth.CredentialsProvider;
 import com.emacle.qingyunsdk.common.comm.HttpMethod;
 import com.emacle.qingyunsdk.common.comm.RequestMessage;
 import com.emacle.qingyunsdk.common.comm.ServiceClient;
+import com.emacle.qingyunsdk.common.comm.io.RepeatableFileInputStream;
+import com.emacle.qingyunsdk.internal.ResponseParsers.GetObjectResponseParser;
+import com.emacle.qingyunsdk.common.parser.ResponseParser;
 import com.emacle.qingyunsdk.common.utils.DateUtil;
 import com.emacle.qingyunsdk.common.utils.RangeSpec;
 import com.emacle.qingyunsdk.exception.ClientException;
 import com.emacle.qingyunsdk.exception.OSSException;
+import com.emacle.qingyunsdk.internal.Mimetypes;
 import com.emacle.qingyunsdk.internal.OSSHeaders;
 import com.emacle.qingyunsdk.internal.OSSOperation;
 import com.emacle.qingyunsdk.internal.OSSRequestMessageBuilder;
+import com.emacle.qingyunsdk.internal.RequestParameters;
+import com.emacle.qingyunsdk.model.AppendObjectRequest;
 import com.emacle.qingyunsdk.model.DeleteObjectsResult;
 import com.emacle.qingyunsdk.model.HeadObjectRequest;
 import com.emacle.qingyunsdk.model.OSSObject;
+import com.emacle.qingyunsdk.model.ObjectMetadata;
+import com.emacle.qingyunsdk.model.PutObjectRequest;
 import com.emacle.qingyunsdk.model.PutObjectResult;
 import com.emacle.qingyunsdk.model.request.DeleteObjectsRequest;
 import com.emacle.qingyunsdk.model.request.GetObjectRequest;
@@ -40,7 +72,15 @@ public class OSSObjectOperation extends OSSOperation{
 		super(client, credsProvider);
 	}
 	
-    
+	/**
+     * Upload input stream or file to oss.
+     */
+	public PutObjectResult putObject(PutObjectRequest putObjectRequest) 
+    		throws OSSException, ClientException {
+    	assertParameterNotNull(putObjectRequest, "putObjectRequest");
+    	return writeObjectInternal(WriteMode.OVERWRITE, putObjectRequest, putObjectReponseParser);
+	}
+	
     /**
      * Upload input stream to oss by using url .
      */
@@ -203,4 +243,125 @@ public class OSSObjectOperation extends OSSOperation{
 		
 		return null;
 	}
+	
+	 /**
+     * An enum to represent different modes the client may specify to upload specified file or inputstream.
+     */
+    private static enum WriteMode {
+    	
+    	/* If object already not exists, create it. otherwise, append it with the new input */
+    	APPEND("APPEND"),
+    	
+    	/* No matter object exists or not, just overwrite it with the new input */
+    	OVERWRITE("OVERWRITE");
+    	
+    	private final String modeAsString;
+    	
+    	private WriteMode(String modeAsString) {
+    		this.modeAsString = modeAsString;
+    	}
+    	
+    	@Override
+    	public String toString() {
+    		return this.modeAsString;
+    	}
+    	
+    	public static HttpMethod getMappingMethod(WriteMode mode) {
+    		switch (mode) {
+			case APPEND:
+				return HttpMethod.POST;
+			
+			case OVERWRITE:
+				return HttpMethod.PUT;
+				
+			default:
+				throw new IllegalArgumentException("Unsuported write mode" + mode.toString());
+			}
+    	}
+    }
+    
+    private <RequestType extends PutObjectRequest, ResponseType> 
+	ResponseType writeObjectInternal(WriteMode mode, RequestType originalRequest, 
+			ResponseParser<ResponseType> responseParser) {
+	
+	final String bucketName = originalRequest.getBucketName();
+	final String key = originalRequest.getKey();
+	InputStream originalInputStream = originalRequest.getInputStream();
+	ObjectMetadata metadata = originalRequest.getMetadata();
+	if (metadata == null) {
+		metadata = new ObjectMetadata();
+	}
+	
+	assertParameterNotNull(bucketName, "bucketName");
+	assertParameterNotNull(key, "key");
+	ensureBucketNameValid(bucketName);
+    ensureObjectKeyValid(key);
+	
+    InputStream repeatableInputStream = null;
+	if (originalRequest.getFile() != null) {
+    	File toUpload = originalRequest.getFile();
+    	
+    	if (!checkFile(toUpload)) {
+    		getLog().info("Illegal file path: " + toUpload.getPath());
+			throw new ClientException("Illegal file path: " + toUpload.getPath());
+		}
+    	
+    	metadata.setContentLength(toUpload.length());
+    	if (metadata.getContentType() == null) {
+    		metadata.setContentType(Mimetypes.getInstance().getMimetype(toUpload));
+    	}
+    	
+    	try {
+    		repeatableInputStream = new RepeatableFileInputStream(toUpload);
+		} catch (IOException ex) {
+			logException("Cannot locate file to upload: ", ex);
+			throw new ClientException("Cannot locate file to upload: ", ex);
+		}
+    } else {
+    	assertTrue(originalInputStream != null, "Please specify input stream or file to upload");
+    	
+    	if (metadata.getContentType() == null) {
+    		metadata.setContentType(Mimetypes.DEFAULT_MIMETYPE);
+    	}
+    	
+    	try {
+			repeatableInputStream = newRepeatableInputStream(originalInputStream);
+		} catch (IOException ex) {
+			logException("Cannot wrap to repeatable input stream: ", ex);
+			throw new ClientException("Cannot wrap to repeatable input stream: ", ex);
+		}
+    }
+    
+    Map<String, String> headers = new HashMap<String, String>();
+    populateRequestMetadata(headers, metadata);
+    Map<String, String> params = new LinkedHashMap<String, String>();
+    populateWriteObjectParams(mode, originalRequest, params);
+    
+    RequestMessage httpRequest = new OSSRequestMessageBuilder(getInnerClient())
+	        .setEndpoint(getEndpoint())
+	        .setMethod(WriteMode.getMappingMethod(mode))
+	        .setBucket(bucketName)
+	        .setKey(key)
+	        .setHeaders(headers)
+	        .setParameters(params)
+	        .setInputStream(repeatableInputStream)
+	        .setInputSize(determineInputStreamLength(repeatableInputStream, metadata.getContentLength()))
+	        .build();
+    
+    return doOperation(httpRequest, responseParser, bucketName, key, true);
+    }	
+    private static void populateWriteObjectParams(WriteMode mode, PutObjectRequest originalRequest, 
+    		Map<String, String> params) {
+    	
+    	if (mode == WriteMode.OVERWRITE) {
+    		return;
+    	}
+    	
+    	assert (originalRequest instanceof AppendObjectRequest);
+    	params.put(RequestParameters.SUBRESOURCE_APPEND, null);
+    	AppendObjectRequest appendObjectRequest = (AppendObjectRequest)originalRequest;
+    	if (appendObjectRequest.getPosition() != null) {
+    		params.put(RequestParameters.POSITION, String.valueOf(appendObjectRequest.getPosition()));    		
+    	}
+    }
 }

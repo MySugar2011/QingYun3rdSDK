@@ -8,7 +8,9 @@ import com.emacle.qingyunsdk.model.InitiateMultipartUploadRequest;
 import com.emacle.qingyunsdk.model.ListMultipartUploadsRequest;
 import com.emacle.qingyunsdk.model.MultipartUploadListing;
 import com.emacle.qingyunsdk.model.OSSObject;
+import com.emacle.qingyunsdk.model.ObjectMetadata;
 import com.emacle.qingyunsdk.model.PartListing;
+import com.emacle.qingyunsdk.model.PutObjectRequest;
 import com.emacle.qingyunsdk.model.PutObjectResult;
 import com.emacle.qingyunsdk.model.UploadPartResult;
 import com.emacle.qingyunsdk.model.request.AbortMultipartUploadRequest;
@@ -26,6 +28,7 @@ import static com.emacle.qingyunsdk.internal.OSSConstants.DEFAULT_OSS_ENDPOINT;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -246,7 +249,24 @@ public class QOSSClient implements OSS{
 		long contentLength = file.length();
 		return objectOperation.putObject(endpoint,bucketName,objectName, fis, contentLength, null);
 	}
+	@Override
+	public PutObjectResult putObject(String bucketName, String key, InputStream input, ObjectMetadata metadata)
+			throws OSSException, ClientException {
+		return putObject(new PutObjectRequest(bucketName, key, input, metadata));
+	}
 	
+	@Override
+	public PutObjectResult putObject(String bucketName, String key, File file)
+			throws OSSException, ClientException {
+		return putObject(new PutObjectRequest(bucketName, key, file)
+				.withMetadata(new ObjectMetadata()));
+	}
+
+	@Override
+	public PutObjectResult putObject(PutObjectRequest putObjectRequest)
+			throws OSSException, ClientException {
+		return objectOperation.putObject(putObjectRequest);
+	}
     /**
      * Pull an object from oss.
      */
@@ -302,7 +322,7 @@ public class QOSSClient implements OSS{
 			throws OSSException, ClientException {
 		return multipartOperation.initiateMultipartUpload(request);
 	}
-	@Override
+	@Override // 不支持
 	public MultipartUploadListing listMultipartUploads(ListMultipartUploadsRequest request)
 			throws OSSException, ClientException {
 		return multipartOperation.listMultipartUploads(request);
