@@ -45,8 +45,8 @@ public class CompleteMultipartUploadRequest extends WebServiceRequest {
     /** The list of part numbers and ETags to use when completing the multipart upload */
     @JsonProperty("object_parts")
     private List<PartETag> partETags = new ArrayList<PartETag>();
-    
-    private String ETag="0";
+//  暂不进行设置了    
+    private String ETag="\"0\"";
 
     /**
      * 构造函数。
@@ -148,5 +148,6 @@ public class CompleteMultipartUploadRequest extends WebServiceRequest {
 	public void setETag(String eTag) {
 		ETag = eTag;
 	}
+
     
 }

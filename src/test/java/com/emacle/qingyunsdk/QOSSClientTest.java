@@ -17,10 +17,12 @@ import org.junit.Test;
 
 import com.emacle.qingyunsdk.model.Bucket;
 import com.emacle.qingyunsdk.model.CompleteMultipartUploadResult;
+import com.emacle.qingyunsdk.model.HeadObjectRequest;
 import com.emacle.qingyunsdk.model.InitiateMultipartUploadRequest;
 import com.emacle.qingyunsdk.model.ListMultipartUploadsRequest;
 import com.emacle.qingyunsdk.model.MultipartUploadListing;
 import com.emacle.qingyunsdk.model.OSSObject;
+import com.emacle.qingyunsdk.model.ObjectMetadata;
 import com.emacle.qingyunsdk.model.PartETag;
 import com.emacle.qingyunsdk.model.PartListing;
 import com.emacle.qingyunsdk.model.UploadPartResult;
@@ -41,7 +43,7 @@ public class QOSSClientTest {
 	private static String testfile2 = "/Users/sugar/test/test.py";
 	private static String testobject1 = "te.txt";
 	private static String testobject2 = "test.py";
-	private static String testmuliobject = "MultipartUpload3.txt";
+	private static String testmuliobject = "MultipartUpload5.txt";
 	
 	
 	@BeforeClass
@@ -56,12 +58,12 @@ public class QOSSClientTest {
 //		assertEquals(bucket, buc.getName());
 //	}
 //	
-	@Test
-	public void testPutObject(){
-		File file = new File(testfile1);
-//		qsc.putObject(bucket, file);
-		qsc.putObject(bucket, "hhaxx.txt", file);
-	}
+//	@Test
+//	public void testPutObject(){
+//		File file = new File(testfile1);
+////		qsc.putObject(bucket, file);
+//		qsc.putObject(bucket, "hhaxx.txt", file);
+//	}
 	
 //	@Test
 //	public void testGetObject(){
@@ -85,6 +87,28 @@ public class QOSSClientTest {
 //		String key = "te.txt";
 //		System.out.println(qsc.doesObjectExist(bucketName, key));
 //		assertFalse(qsc.doesObjectExist(bucketName, key));
+//		
+//	}
+	
+//	@Test
+//	public void testHeadObjectExist(){
+//		HeadObjectRequest request = new HeadObjectRequest(bucket, testmuliobject);
+//		qsc.
+//		System.out.println(qsc.doesObjectExist(bucket, testmuliobject));
+////		assertFalse(qsc.doesObjectExist(bucketName, key));
+//		
+//	}
+	
+//	@Test
+//	public void testgetObjectMeta(){
+//		HeadObjectRequest request = new HeadObjectRequest(bucket, testobject1);
+//		 ObjectMetadata objMeta = qsc.getObjectMetadata(bucket, testobject1);
+//		 
+//		 
+//		 System.out.println(objMeta.getContentLength());
+////		 printJson("###objMeta", objMeta);
+////		System.out.println(qsc.doesObjectExist(bucket, testmuliobject));
+////		assertFalse(qsc.doesObjectExist(bucketName, key));
 //		
 //	}
 	
@@ -135,9 +159,9 @@ public class QOSSClientTest {
 //	public void testcompleteMultipartUpload(){
 //		List<PartETag> list =new ArrayList<PartETag>();
 //		//考虑去掉etag
-//		PartETag pe = new PartETag(1, "d42468f933664e0173a6347f52e92209".toUpperCase());
+//		PartETag pe = new PartETag(1, "\"d42468f933664e0173a6347f52e92209\"");
 //		list.add(pe);
-//		CompleteMultipartUploadRequest request  = new CompleteMultipartUploadRequest(bucket, testmuliobject, tmpUploadId, list,"d42468f933664e0173a6347f52e92209".toUpperCase());
+//		CompleteMultipartUploadRequest request  = new CompleteMultipartUploadRequest(bucket, testmuliobject, tmpUploadId, list,"\"d42468f933664e0173a6347f52e92209\"");
 //		CompleteMultipartUploadResult result = qsc.completeMultipartUpload(request);
 //		printJson("###CompleteMultipartUploadResult",result);
 //	}

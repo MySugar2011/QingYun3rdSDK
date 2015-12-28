@@ -299,6 +299,8 @@ public class QOSSClient implements OSS{
 		return doesObjectExist(new HeadObjectRequest(bucketName, key));
 	}
 	
+	
+	
 	@Override
 	public boolean doesObjectExist(HeadObjectRequest headObjectRequest) throws OSSException, ClientException {
 		try {
@@ -313,7 +315,8 @@ public class QOSSClient implements OSS{
 		}
 	}
 	
-	private void headObject(HeadObjectRequest headObjectRequest)
+	@Override
+	public void headObject(HeadObjectRequest headObjectRequest)
 			throws OSSException, ClientException {
 		objectOperation.headObject(headObjectRequest);
 	}
@@ -344,5 +347,11 @@ public class QOSSClient implements OSS{
 	public void abortMultipartUpload(AbortMultipartUploadRequest request) throws OSSException, ClientException {
 		multipartOperation.abortMultipartUpload(request);
 	}
+	@Override
+	public ObjectMetadata getObjectMetadata(String bucketName, String key)
+			throws OSSException, ClientException {
+		return objectOperation.getObjectMetadata(bucketName, key);
+	}
+	
 	
 }

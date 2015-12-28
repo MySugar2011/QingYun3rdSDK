@@ -37,20 +37,30 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.http.HttpStatus;
+
 import com.emacle.qingyunsdk.common.auth.CredentialsProvider;
 import com.emacle.qingyunsdk.common.comm.HttpMethod;
 import com.emacle.qingyunsdk.common.comm.RequestMessage;
+import com.emacle.qingyunsdk.common.comm.ResponseHandler;
+import com.emacle.qingyunsdk.common.comm.ResponseMessage;
 import com.emacle.qingyunsdk.common.comm.ServiceClient;
 import com.emacle.qingyunsdk.common.comm.io.RepeatableFileInputStream;
 import com.emacle.qingyunsdk.internal.ResponseParsers.GetObjectResponseParser;
 import com.emacle.qingyunsdk.common.parser.ResponseParser;
 import com.emacle.qingyunsdk.common.utils.DateUtil;
+import com.emacle.qingyunsdk.common.utils.ExceptionFactory;
 import com.emacle.qingyunsdk.common.utils.RangeSpec;
 import com.emacle.qingyunsdk.exception.ClientException;
+import com.emacle.qingyunsdk.exception.OSSErrorCode;
 import com.emacle.qingyunsdk.exception.OSSException;
+import com.emacle.qingyunsdk.exception.ServiceException;
 import com.emacle.qingyunsdk.internal.Mimetypes;
 import com.emacle.qingyunsdk.internal.OSSHeaders;
 import com.emacle.qingyunsdk.internal.OSSOperation;
@@ -236,8 +246,47 @@ public class OSSObjectOperation extends OSSOperation{
 		    	.build();
     	
     	doOperation(request, emptyResponseParser, bucketName, key);
+    	
 	}
+	
+	/**
+     * Get object matadata.
+     */
+    public ObjectMetadata getObjectMetadata(String bucketName, String key)
+            throws OSSException, ClientException {
 
+        assertParameterNotNull(bucketName, "bucketName");
+        assertParameterNotNull(key, "key");
+        ensureBucketNameValid(bucketName);
+        ensureObjectKeyValid(key);
+        
+        RequestMessage request = new OSSRequestMessageBuilder(getInnerClient())
+	        	.setEndpoint(getEndpoint())
+	            .setMethod(HttpMethod.HEAD)
+	            .setBucket(bucketName)
+	            .setKey(key)
+	            .build();
+        
+        List<ResponseHandler> reponseHandlers = new ArrayList<ResponseHandler>();
+        reponseHandlers.add(new ResponseHandler() {
+        	
+            @Override
+            public void handle(ResponseMessage response) 
+            		throws ServiceException, ClientException {
+                if (response.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                    safeCloseResponse(response);
+                    throw ExceptionFactory.createOSSException(
+                    		response.getHeaders().get(OSSHeaders.OSS_HEADER_REQUEST_ID), 
+                    		OSSErrorCode.NO_SUCH_KEY, 
+                            OSS_RESOURCE_MANAGER.getString("NoSuchKey"));
+                }
+            }
+            
+        });
+        
+        return doOperation(request, getObjectMetadataResponseParser, 
+        		bucketName, key, true, null, reponseHandlers);
+    }
 
 	public DeleteObjectsResult deleteObjects(DeleteObjectsRequest deleteObjectsRequest) {
 		

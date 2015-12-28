@@ -493,6 +493,7 @@ public class OSSMultipartOperation extends OSSOperation {
 
     private static void populateCompleteMultipartUploadOptionalHeaders(
     		CompleteMultipartUploadRequest completeMultipartUploadRequest, Map<String, String> headers) {
+    	// 计划不要etag了
     	headers.put(OSSHeaders.ETAG,completeMultipartUploadRequest.getETag());
 //    	CannedAccessControlList cannedACL = completeMultipartUploadRequest.getObjectACL();
 //    	if (cannedACL != null) {

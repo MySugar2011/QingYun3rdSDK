@@ -163,6 +163,12 @@ public interface OSS {
     public boolean doesObjectExist(HeadObjectRequest headObjectRequest)
     		throws OSSException, ClientException;
     
+    public void headObject(HeadObjectRequest request) throws OSSException, ClientException;
+    
+    public ObjectMetadata getObjectMetadata(String bucketName, String key)
+            throws OSSException, ClientException ;
+    
+    
     /**
      * 初始化一个Multipart上传事件。
      * <p>
